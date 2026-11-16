@@ -1,0 +1,12 @@
+{
+  "name": "BolMizan Merchant Khata",
+  "description": "Pilot-stage merchant ledger and receipt workspace. No banking, wallet, or payment-settlement services are provided.",
+  "requestFramePermissions": [
+    "microphone"
+  ],
+  "majorCapabilities": [
+    "merchant-ledger-pilot",
+    "receipt-drafts",
+    "scam-text-pattern-review"
+  ]
+}
