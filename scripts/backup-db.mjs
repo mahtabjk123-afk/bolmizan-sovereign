@@ -1,8 +1,9 @@
 import crypto from 'node:crypto';
 import fs from 'node:fs/promises';
 import path from 'node:path';
+import { DatabaseSync } from 'node:sqlite';
 
-const dbPath = process.env.BOLMIZAN_TENANT_DB_FILE || path.resolve(process.cwd(), 'data', 'tenants.sqlite');
+const dbPath = process.env.BOLMIZAN_TENANT_DB_FILE || path.resolve(process.cwd(), 'data', 'bolmizan_sovereign.sqlite');
 const backupDir = process.env.DB_BACKUP_DIR || path.resolve(process.cwd(), 'backups');
 const backupKey = process.env.DB_BACKUP_KEY;
 
@@ -19,16 +20,28 @@ try {
 }
 
 const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
-const outputPath = path.join(backupDir, `tenants-${timestamp}.sqlite.enc`);
+const outputPath = path.join(backupDir, `bolmizan-${timestamp}.sqlite.enc`);
+const snapshotPath = path.join(backupDir, `.bolmizan-${timestamp}.snapshot.sqlite`);
 await fs.mkdir(backupDir, { recursive: true });
 
-const buffer = await fs.readFile(dbPath);
-const key = crypto.createHash('sha256').update(backupKey).digest();
-const iv = crypto.randomBytes(16);
-const cipher = crypto.createCipheriv('aes-256-gcm', key, iv);
-const encrypted = Buffer.concat([cipher.update(buffer), cipher.final()]);
-const tag = cipher.getAuthTag();
-const payload = Buffer.concat([Buffer.from('BOLMIZAN-ENC-V1\n'), iv, tag, encrypted]);
-await fs.writeFile(outputPath, payload);
+try {
+  const db = new DatabaseSync(dbPath, { readOnly: true });
+  try {
+    db.exec(`VACUUM INTO '${snapshotPath.replace(/'/g, "''")}'`);
+  } finally {
+    db.close();
+  }
 
-console.log(`Encrypted SQLite backup created at ${outputPath}`);
+  const buffer = await fs.readFile(snapshotPath);
+  const key = crypto.createHash('sha256').update(backupKey).digest();
+  const iv = crypto.randomBytes(16);
+  const cipher = crypto.createCipheriv('aes-256-gcm', key, iv);
+  const encrypted = Buffer.concat([cipher.update(buffer), cipher.final()]);
+  const tag = cipher.getAuthTag();
+  const payload = Buffer.concat([Buffer.from('BOLMIZAN-ENC-V1\n'), iv, tag, encrypted]);
+  await fs.writeFile(outputPath, payload, { flag: 'wx' });
+  console.log(`Encrypted SQLite backup created at ${outputPath}`);
+} finally {
+  await fs.rm(snapshotPath, { force: true });
+}
+

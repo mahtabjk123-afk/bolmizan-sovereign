@@ -23,7 +23,8 @@ cd /var/www/bolmizan
 git clone <your-repo-url> .
 npm install
 cp .env.example .env
-# Set APP_URL, AUTH_SESSION_SECRET, SOVEREIGN_CONTROL_PIN, and production-safe values.
+# Set APP_URL, AUTH_SESSION_SECRET, SOVEREIGN_CONTROL_PIN, and PUBLIC_FINTECH_CLAIMS_BLOCKED=true.
+# Optionally set a distinct ISEF_JUDGE_PIN to enable judge-role login; never reuse the merchant PIN.
 # Keep phone-verification and payment rails disabled for this preview.
 ```
 

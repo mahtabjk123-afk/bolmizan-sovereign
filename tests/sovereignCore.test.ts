@@ -1,5 +1,4 @@
 import assert from 'node:assert/strict';
-import { DatabaseSync } from 'node:sqlite';
 import { after, describe, it } from 'node:test';
 import { mkdtempSync, readFileSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
@@ -21,7 +20,6 @@ import {
     verifyTenantSessionToken,
 } from '../server/tenantSession.ts';
 import { computeLedgerBlockHash, type LedgerBlockHashInput } from '../server/ledgerIntegrity.ts';
-import { createProductionDatabase } from '../server/realDatabase.ts';
 
 const isolatedDataRoot = mkdtempSync(path.join(tmpdir(), 'bolmizan-sovereign-tests-'));
 const originalLedgerPath = process.env.BOLMIZAN_SOVEREIGN_LEDGER_FILE;
@@ -103,92 +101,6 @@ describe('sovereign core invariants', () => {
         assert.equal(isSovereignMutationDisabledInProduction('POST', '/reset', true), true);
         assert.equal(isSovereignMutationDisabledInProduction('GET', '/state', true), false);
         assert.equal(isSovereignMutationDisabledInProduction('POST', '/deals', false), false);
-    });
-
-    it('persists tenant auth and ledger data in SQLite WAL, verifies salted PINs, and detects tampering', () => {
-        const dbPath = path.join(isolatedDataRoot, 'tenant-auth.sqlite');
-        const db = createProductionDatabase(dbPath);
-        const registration = db.registerOrLoginShop({
-            phone: '03001234567',
-            pin: '5831',
-            businessName: 'Test Merchant',
-        });
-        assert.equal(registration.ok, true);
-        if (!registration.ok) return;
-        assert.match(registration.tenant.id, /^tn_[a-f0-9]{32}$/);
-        assert.equal(registration.tenant.raastIban, '', 'must not fabricate a payment identifier');
-        assert.equal(db.registerOrLoginShop({ phone: '923001234567', pin: '0000' }).ok, false);
-        assert.equal(db.registerOrLoginShop({ phone: '+92 300 1234567', pin: '5831' }).ok, true);
-
-        const appendInput = {
-            tenantId: registration.tenant.id,
-            idempotencyKey: 'merchant-entry-0001',
-            partyName: 'Ali',
-            partyPhone: '03005551234',
-            entryType: 'udhaar_given',
-            amountPkr: 1200,
-            itemsSummary: 'Rice',
-        } as const;
-        const firstAppend = db.appendTenantBlock(appendInput);
-        const block = firstAppend.block;
-        assert.equal(firstAppend.replayed, false);
-        assert.equal(block.previous_hash, 'GENESIS');
-        const replay = db.appendTenantBlock(appendInput);
-        assert.equal(replay.replayed, true);
-        assert.equal(replay.block.block_index, block.block_index);
-        assert.throws(
-            () => db.appendTenantBlock({ ...appendInput, amountPkr: 1201 }),
-            /idempotency key was already used/i,
-        );
-        const secondBlock = db.appendTenantBlock({
-            ...appendInput,
-            idempotencyKey: 'merchant-entry-0002',
-            entryType: 'payment_received',
-            amountPkr: 500,
-        }).block;
-        assert.equal(secondBlock.block_index, 2);
-        assert.equal(db.verifyTenantChain(registration.tenant.id).valid, true);
-        assert.equal(db.verifyTenantChain('tn_ffffffffffffffffffffffffffffffff').blockCount, 0);
-        const reconciliation = db.previewTenantStatementReconciliation(registration.tenant.id, [
-            { reference: 'BLK-1', amountPkr: 1200, currency: 'PKR' },
-            { reference: 'BLK-2', amountPkr: 450, currency: 'PKR' },
-            { reference: 'BLK-999', amountPkr: 100, currency: 'PKR' },
-            { reference: 'BLK-1', amountPkr: 1200, currency: 'PKR' },
-        ]);
-        assert.equal(reconciliation.statementAuthenticated, false);
-        assert.equal(reconciliation.settlementConfirmed, false);
-        assert.equal(reconciliation.matchedRows, 1);
-        assert.equal(reconciliation.exceptionRows, 3);
-        assert.equal(reconciliation.unmatchedLocalBlocks, 1);
-        db.close();
-
-        const reopened = createProductionDatabase(dbPath);
-        assert.equal(reopened.getTenantLedger(registration.tenant.id).length, 2);
-        assert.equal(reopened.appendTenantBlock(appendInput).replayed, true, 'idempotency survives process restarts');
-        assert.equal(reopened.verifyTenantChain(registration.tenant.id).valid, true);
-        reopened.close();
-
-        const tamper = new DatabaseSync(dbPath);
-        assert.throws(
-            () => tamper.prepare('UPDATE ledger_blocks SET amount_pkr = 1201 WHERE tenant_id = ? AND block_index = 1').run(registration.tenant.id),
-            /append-only/,
-        );
-        tamper.exec('DROP TRIGGER ledger_blocks_no_update;');
-        tamper.prepare('UPDATE ledger_blocks SET amount_pkr = 1201 WHERE tenant_id = ? AND block_index = 1').run(registration.tenant.id);
-        tamper.close();
-        const verifier = createProductionDatabase(dbPath);
-        assert.equal(verifier.verifyTenantChain(registration.tenant.id).valid, false);
-        verifier.close();
-    });
-
-    it('rejects invalid tenant PIN formats and disables unverified production enrollment', () => {
-        const db = createProductionDatabase(':memory:');
-        assert.equal(db.registerOrLoginShop({ phone: '03001234567', pin: '123' }).ok, false);
-        assert.equal(db.registerOrLoginShop({ phone: '03001234567', pin: '1234567' }).ok, false);
-        const blocked = db.registerOrLoginShop({ phone: '03001234567', pin: '1234' }, false);
-        assert.equal(blocked.ok, false);
-        if (!blocked.ok) assert.match(blocked.error, /Invalid mobile number or PIN/);
-        db.close();
     });
 
     it('does not expose shared deals, worker details, debt, or balances from the production state endpoint', () => {

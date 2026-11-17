@@ -1,0 +1,110 @@
+{
+  "scamMetrics": {
+    "totalSamples": 300,
+    "tp": 120,
+    "tn": 150,
+    "fp": 0,
+    "fn": 30,
+    "accuracy": 90,
+    "precision": 100,
+    "recall": 80,
+    "f1": 88.89,
+    "avgLatency": 0.0479
+  },
+  "mukasaBenchmarks": [
+    {
+      "nodes": 10,
+      "initialVolume": 60000,
+      "finalVolume": 2500,
+      "liquiditySaved": 57500,
+      "reductionPercentage": 95.83,
+      "settledEdges": [
+        {
+          "from": "M-0",
+          "to": "M-2",
+          "amount": 2500
+        }
+      ],
+      "executionTimeMs": 1.084
+    },
+    {
+      "nodes": 50,
+      "initialVolume": 292500,
+      "finalVolume": 2500,
+      "liquiditySaved": 290000,
+      "reductionPercentage": 99.15,
+      "settledEdges": [
+        {
+          "from": "M-0",
+          "to": "M-1",
+          "amount": 2500
+        }
+      ],
+      "executionTimeMs": 0.761
+    },
+    {
+      "nodes": 100,
+      "initialVolume": 585000,
+      "finalVolume": 2500,
+      "liquiditySaved": 582500,
+      "reductionPercentage": 99.57,
+      "settledEdges": [
+        {
+          "from": "M-0",
+          "to": "M-2",
+          "amount": 2500
+        }
+      ],
+      "executionTimeMs": 0.721
+    },
+    {
+      "nodes": 250,
+      "initialVolume": 1460000,
+      "finalVolume": 2500,
+      "liquiditySaved": 1457500,
+      "reductionPercentage": 99.83,
+      "settledEdges": [
+        {
+          "from": "M-0",
+          "to": "M-2",
+          "amount": 2500
+        }
+      ],
+      "executionTimeMs": 1.663
+    },
+    {
+      "nodes": 500,
+      "initialVolume": 2917500,
+      "finalVolume": 2500,
+      "liquiditySaved": 2915000,
+      "reductionPercentage": 99.91,
+      "settledEdges": [
+        {
+          "from": "M-0",
+          "to": "M-1",
+          "amount": 2500
+        }
+      ],
+      "executionTimeMs": 3.505
+    },
+    {
+      "nodes": 1000,
+      "initialVolume": 5835000,
+      "finalVolume": 2500,
+      "liquiditySaved": 5832500,
+      "reductionPercentage": 99.96,
+      "settledEdges": [
+        {
+          "from": "M-0",
+          "to": "M-2",
+          "amount": 2500
+        }
+      ],
+      "executionTimeMs": 7.725
+    }
+  ],
+  "cryptoAudit": {
+    "chainValid": true,
+    "merkleRoot": "31f3b56f164e851bdad145113374cba743c779a4e5644c31f1fe612ad34de7b7"
+  }
+}

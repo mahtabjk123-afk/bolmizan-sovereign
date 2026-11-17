@@ -9,7 +9,7 @@
     "build": "vite build",
     "preview": "vite preview",
     "lint": "tsc --noEmit",
-    "test": "tsx --test tests/sovereignCore.test.ts",
+    "test": "tsx --test tests/*.test.ts",
     "validate:prod": "node ./scripts/validate-prod-env.mjs",
     "backup:db": "node ./scripts/backup-db.mjs"
   },

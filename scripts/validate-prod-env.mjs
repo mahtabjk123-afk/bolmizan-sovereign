@@ -23,13 +23,22 @@ const checks = [
     value: process.env.SOVEREIGN_CONTROL_PIN,
     validator: (value) => typeof value === 'string' && /^\d{8,12}$/.test(value) && !value.includes('REPLACE_WITH'),
   },
+  {
+    name: 'PUBLIC_FINTECH_CLAIMS_BLOCKED',
+    value: process.env.PUBLIC_FINTECH_CLAIMS_BLOCKED,
+    validator: (value) => value === 'true',
+  },
 ];
 
 const failures = checks.filter((entry) => !entry.validator(entry.value)).map((entry) => entry.name);
+const judgePin = process.env.ISEF_JUDGE_PIN;
+if (judgePin && (!/^\d{8,12}$/.test(judgePin) || judgePin === process.env.SOVEREIGN_CONTROL_PIN)) {
+  failures.push('ISEF_JUDGE_PIN (must be a distinct 8-12 digit PIN)');
+}
 
 if (failures.length > 0) {
   console.error('Production startup blocked. Missing or invalid environment values:', failures.join(', '));
-  console.error('Set real APP_URL, AUTH_SESSION_SECRET, and SOVEREIGN_CONTROL_PIN before starting in production.');
+  console.error('Set valid APP_URL, AUTH_SESSION_SECRET, SOVEREIGN_CONTROL_PIN, and PUBLIC_FINTECH_CLAIMS_BLOCKED=true before starting in production.');
   process.exit(1);
 }
 

@@ -5,6 +5,7 @@ import {
   Printer,
   RotateCcw,
   ShieldAlert,
+  ShieldCheck,
 } from 'lucide-react';
 import type { SovereignSystemState } from '../types/sovereign';
 import { triggerApexHaptic } from '../utils/haptics';

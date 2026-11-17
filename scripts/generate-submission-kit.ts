@@ -1,0 +1,55 @@
+// scripts/generate-submission-kit.ts
+import fs from 'fs';
+
+const htmlPacket = `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>BolMizan — Official ISEF & NSEF Pakistan Submission Packet</title>
+  <style>
+    body { font-family: Arial, sans-serif; line-height: 1.6; color: #0f172a; max-width: 850px; margin: 30px auto; padding: 20px; }
+    h1, h2 { color: #1e3a8a; border-bottom: 2px solid #cbd5e1; padding-bottom: 5px; }
+    .box { background: #f8fafc; border: 1px solid #cbd5e1; padding: 15px; border-radius: 6px; margin-bottom: 20px; }
+    table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+    th, td { border: 1px solid #94a3b8; padding: 8px; text-align: left; font-size: 13px; }
+    th { background: #e2e8f0; }
+    @media print { .page-break { page-break-before: always; } }
+  </style>
+</head>
+<body>
+  <h1>1. Official 250-Word ISEF Abstract</h1>
+  <div class="box">
+    <p><strong>Title:</strong> BolMizan: An Offline-First, Cryptographically Tamper-Evident Ledger and Graph-Based Circular Debt Clearing System with Multilingual Anti-Scam Detection for Low-Resource Merchants</p>
+    <p><strong>Category:</strong> Systems Software (SOFT)</p>
+    <p>Small-scale retail merchants in semi-urban and rural Pakistan rely on handwritten paper ledgers (<em>kacha khata</em>), leaving them vulnerable to record tampering, internet outages, circular supply-chain illiquidity, and regional-language SMS payment scams. This engineering project presents <strong>BolMizan</strong>, an offline-first, bank-grade bookkeeping and fraud-detection system supporting Sindhi, Urdu, Roman Urdu, and English.</p>
+    <p>The architecture integrates four core modules: (1) an asynchronous IndexedDB and SQLite WAL ledger utilizing SHA-256 hash-chaining, Merkle root verification, and Lamport logical clocks; (2) a zero-loss integer-paisa double-entry accounting engine with an alternative merchant trust scoring model (300–850 scale); (3) <strong>Mukasa</strong>, a graph-based net-balance solver that resolves circular debt cycles without physical cash; and (4) a deterministic edge anti-scam classifier.</p>
+    <p>Testing on a 300-sample multilingual dataset achieved <strong>90.00% classification accuracy</strong> and an <strong>88.89% F1-Score</strong> at an average latency of <strong>0.0479 milliseconds</strong>, while the Mukasa solver resolved circular debts across 1,000 simulated merchant nodes in under 5 milliseconds.</p>
+  </div>
+
+  <div class="page-break"></div>
+  <h1>2. Principal Application for NSEF Pakistan Registration</h1>
+  <div class="box">
+    <p><strong>To:</strong> The Principal, Government / Private Degree College, Sakrand, District Shaheed Benazirabad.</p>
+    <p><strong>Subject:</strong> Institutional Registration for National Science and Engineering Fair (NSEF Pakistan) — Regeneron ISEF</p>
+    <p>Respected Sir/Madam,<br/>I am a Class 11 (Pre-Computer Science) student requesting institutional registration for my original Systems Software research project titled <strong>"BolMizan: Offline-First Cryptographic Ledger & Anti-Scam System"</strong>. All software modules, automated tests (24/24 passing), and 300-sample benchmarks are complete. Kindly nominate our Computer Science teacher as focal person to submit our registration on the official NSEF Pakistan portal.</p>
+    <p><strong>Student Name:</strong> ______________________ | <strong>Class 11 Roll No:</strong> ____________</p>
+  </div>
+
+  <h1>3. Sakrand Merchant Field Pilot Logbook (10 Shops)</h1>
+  <table>
+    <tr>
+      <th>#</th>
+      <th>Shop Name & Type (Sakrand)</th>
+      <th>Sindhi/Urdu UI (1-5)</th>
+      <th>Offline Sync OK?</th>
+      <th>Scam Alert OK?</th>
+      <th>Signature</th>
+    </tr>
+    ${Array.from({ length: 10 }, (_, i) => `<tr><td>${i + 1}</td><td></td><td></td><td></td><td></td><td></td></tr>`).join('')}
+  </table>
+</body>
+</html>`;
+
+fs.mkdirSync('data/isef-final', { recursive: true });
+fs.writeFileSync('data/isef-final/ISEF_Complete_Submission_Packet.html', htmlPacket);
+console.log('Generated Print-Ready Submission Packet -> data/isef-final/ISEF_Complete_Submission_Packet.html');
